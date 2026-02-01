@@ -1,37 +1,76 @@
 import os
 import subprocess
 
-# Carpeta donde están los proyectos
+# =========================
+# COLORES ANSI (limpios y contrastados)
+# =========================
+RESET = "\033[0m"
+
+TITULO = "\033[96m"        # Cyan claro
+SEPARADOR = "\033[94m"     # Azul
+PROYECTO = "\033[95m"      # Blanco brillante
+
+OK = "\033[92m"            # Verde
+WARN = "\033[93m"          # Amarillo
+ERROR = "\033[91m"         # Rojo
+
+DETALLE = "\033[90m"       # Gris (detalle / info secundaria)
+
+# =========================
+# CONFIG
+# =========================
 BASE_PATH = os.path.abspath("..")
 
-print("📂 Analizando proyectos en:")
-print(BASE_PATH)
-print("-" * 40)
+# =========================
+# ENCABEZADO
+# =========================
+print(f"\n{TITULO}📊 RESUMEN DE PROYECTOS{RESET}")
+print(f"{SEPARADOR}{'=' * 40}{RESET}")
 
+# =========================
+# RECORRIDO DE PROYECTOS
+# =========================
 for nombre in os.listdir(BASE_PATH):
     ruta = os.path.join(BASE_PATH, nombre)
 
     if not os.path.isdir(ruta):
         continue
 
-    print(f"\n🔹 Proyecto: {nombre}")
+    print(f"\n{SEPARADOR}{'-' * 40}{RESET}")
+    print(f"{PROYECTO}🔹 Proyecto:{nombre}{RESET}")
 
     git_dir = os.path.join(ruta, ".git")
 
-    if os.path.isdir(git_dir):
-        print("  ✔ Es un repositorio Git")
+    if not os.path.isdir(git_dir):
+        print(f"{ERROR}  ❌ No es un repositorio Git{RESET}")
+        continue
 
-        try:
-            resultado = subprocess.check_output(
-                ["git", "-C", ruta, "log", "-1", "--oneline"],
-                stderr=subprocess.DEVNULL,
-                text=True
-            ).strip()
+    print(f"{OK}  ✔ Es un repositorio Git{RESET}")
 
-            print(f"  🕒 Último commit: {resultado}")
+    # =========================
+    # OBTENER ÚLTIMO COMMIT
+    # =========================
+    try:
+        salida = subprocess.check_output(
+            [
+                "git", "-C", ruta,
+                "log", "-1",
+                "--pretty=format:%h|%cd|%s",
+                "--date=iso"
+            ],
+            stderr=subprocess.DEVNULL,
+            text=True
+        ).strip()
 
-        except Exception:
-            print("  ⚠ No se pudo obtener el historial Git")
+        if salida:
+            hash_commit, fecha_commit, mensaje_commit = salida.split("|", 2)
 
-    else:
-        print("  ✖ No es un repositorio Git")
+            print(f"{OK}  🕒 Último commit:{RESET}")
+            print(f"{DETALLE}     • Hash :{RESET} {hash_commit}")
+            print(f"{DETALLE}     • Fecha:{RESET} {fecha_commit}")
+            print(f"{DETALLE}     • Msg  :{RESET} {mensaje_commit}")
+        else:
+            print(f"{WARN}  ⚠ Repositorio sin commits{RESET}")
+
+    except Exception:
+        print(f"{WARN}  ⚠ No se pudo obtener el historial Git{RESET}")
