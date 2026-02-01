@@ -1,5 +1,7 @@
 import os
 import subprocess
+import sys
+
 
 # =========================
 # COLORES ANSI (limpios y contrastados)
@@ -19,7 +21,13 @@ DETALLE = "\033[90m"       # Gris (detalle / info secundaria)
 # =========================
 # CONFIG
 # =========================
-BASE_PATH = os.path.abspath("..")
+if len(sys.argv) < 2:
+    print("❌ Error: no se especificó la ruta a analizar")
+    print("Uso: python main.py <ruta_proyectos>")
+    sys.exit(1)
+
+BASE_PATH = os.path.abspath(sys.argv[1])
+
 
 # =========================
 # ENCABEZADO
